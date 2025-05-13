@@ -5,7 +5,7 @@ from audio_recorder import AudioRecorder
 
 def main():
     DURACION_GRABACION = 300  # 5 minutos
-    
+     
     # Crear directorio para grabaciones
     os.makedirs("recordings", exist_ok=True)
     
@@ -17,13 +17,13 @@ def main():
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         video_path = f"recordings/video_{timestamp}.avi"
         audio_path = f"recordings/audio_{timestamp}.wav"
-        
+         
         # Inicializar grabadores
         video_recorder = VideoRecorder(video_path)
         audio_recorder = AudioRecorder(audio_path, duration=DURACION_GRABACION)
         
         grabacion_activa = False
-        
+         
         print("\n=== CONTROLES ===")
         print("1. 'i' - Iniciar grabación")
         print("2. 'd' - Detener grabación")
