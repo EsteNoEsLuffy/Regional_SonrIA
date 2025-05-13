@@ -1,0 +1,23 @@
+1) load_dataset.py
+Instalación de recursos para load_dataser.py
+    -pip install tqdm
+
+Luego
+-Ejectuar: python load_dataset.py
+Guardará en la caréra dataser_audios 100 muestras
+
+También
+Generará un archivo llamado processed_dataser.npz
+
+
+2) stress_detector.py
+-Ejecutar: python stress_detector.py train_model
+
+Generará un archivo llamado modelo_deteccion_estres.keras
+
+Luego
+Mover el archivo generado a la carpeta models
+
+
+Todo ejecutado desde src
+
