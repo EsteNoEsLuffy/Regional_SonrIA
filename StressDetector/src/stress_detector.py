@@ -16,7 +16,7 @@ from tensorflow import keras
 
 # Parámetros globales
 DURATION = 10  # segundos para grabación desde micrófono
-SAMPLE_RATE = 22051
+SAMPLE_RATE = 22050
 MODEL_PATH = "modelo_deteccion_estres.keras"
 
 class Stress_Detector:
@@ -108,14 +108,14 @@ class Stress_Detector:
             
             # Guardado INCONDICIONAL
             model.save(MODEL_PATH)
-            print(f"Modelo guardado en {MODEL_PATH} (precisión: {history.history['accuracy'][-1]:.2%})")
+            print(f"✅ Modelo guardado en {MODEL_PATH} (precisión: {history.history['accuracy'][-1]:.2%})")
             
             # Debug adicional
             print("\n=== RESUMEN ===")
             print(f"Precisión final: {history.history['accuracy'][-1]:.2%}")
             print(f"Pérdida final: {history.history['loss'][-1]:.4f}")
             if len(np.unique(y_train)) == 1:
-                print("ALERTA: Todas las muestras pertenecen a la misma clase")
+                print("⚠️ ALERTA: Todas las muestras pertenecen a la misma clase")
             
             return True
             

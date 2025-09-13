@@ -1,127 +1,71 @@
+# from src.video_recorder import VideoRecoder
+# from src.audio_recorder import AudioRecorder
+# from src.stress_detector import detect_stress
+
+import sys
 import os
 import time
-from video_recorder import VideoRecorder
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
+
+from video_recorder import VideoRecoder
 from audio_recorder import AudioRecorder
+from stress_detector import Stress_Detector
 
 def main():
-    DURACION_GRABACION = 300  # 5 minutos
-     
-    # Crear directorio para grabaciones
-    os.makedirs("recordings", exist_ok=True)
-    
-    print("=== SISTEMA DE GRABACIÓN DE AUDIO Y VIDEO ===")
-    print("Duración de grabación: 5 minutos")
+    video_recorder = None
+    audio_recorder = None
     
     try:
-        # Crear nombre único para esta sesión de grabación
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        video_path = f"recordings/video_{timestamp}.avi"
-        audio_path = f"recordings/audio_{timestamp}.wav"
-         
-        # Inicializar grabadores
-        video_recorder = VideoRecorder(video_path)
-        audio_recorder = AudioRecorder(audio_path, duration=DURACION_GRABACION)
-        
-        grabacion_activa = False
-         
-        print("\n=== CONTROLES ===")
-        print("1. 'i' - Iniciar grabación")
-        print("2. 'd' - Detener grabación")
-        print("3. 's' - Salir")
-        
+        print("=== SISTEMA DE MONITOREO DE ESTRÉS VOCAL ===")
+        print("Configurando componentes...")
+
+        # Inicializa componentes
+        video_recorder = VideoRecoder()
+        audio_recorder = AudioRecorder(
+            stress_model="models/modelo_deteccion_estres.keras",
+            stress_threshold=0.6,
+            duration=10
+        )
+
+        if not audio_recorder.model:
+            print("\n¡ADVERTENCIA! El análisis de estrés no estará disponible")
+            print("Motivo: No se pudo cargar el modelo de detección\n")
+
+        print("\nOpciones:")
+        print("- Presiona Enter para nuevo análisis")
+        print("- Escribe 'q' para salir\n")
+
+        # Inicia grabaciones
+        video_recorder.start()
+        audio_recorder.start()
+
         while True:
-            cmd = input("\n>> ").strip().lower()
-            
-            if cmd == 's':
-                if grabacion_activa:
-                    print("Por favor, detén la grabación antes de salir (presiona 'd')")
-                    continue
-                print("\nFinalizando programa...")
+            cmd = input(">> ").lower()
+            if cmd == "q":
                 break
                 
-            elif cmd == 'i':
-                if grabacion_activa:
-                    print("Ya hay una grabación en curso")
-                    continue
-                
-                print("\nIniciando grabación de 5 minutos...")
-                grabacion_activa = True
-                
-                # Iniciar grabaciones simultáneas
-                video_recorder.start()
-                time.sleep(0.5)  # Pequeña pausa para que la cámara esté lista
-                audio_recorder.start()
-                
-                # Mostrar tiempo restante
-                start_time = time.time()
-                while grabacion_activa and audio_recorder.recording:
-                    elapsed = time.time() - start_time
-                    remaining = max(0, DURACION_GRABACION - elapsed)
-                    minutes = int(remaining // 60)
-                    seconds = int(remaining % 60)
-                    print(f"\rTiempo restante: {minutes:02d}:{seconds:02d}", end="")
-                    time.sleep(0.1)
-                
-            elif cmd == 'd':
-                if not grabacion_activa:
-                    print("No hay grabación activa para detener")
-                    continue
-                
-                print("\nDeteniendo grabación...")
-                # Detener ambas grabaciones simultáneamente
-                audio_recorder.stop()
-                video_recorder.stop()
-                grabacion_activa = False
-                
-                print("\nGrabación completada y guardada:")
-                print(f"Video: {video_path}")
-                print(f"Audio: {audio_path}")
-                
-                # Crear nueva sesión de grabación
-                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                video_path = f"recordings/video_{timestamp}.avi"
-                audio_path = f"recordings/audio_{timestamp}.wav"
-                video_recorder = VideoRecorder(video_path)
-                audio_recorder = AudioRecorder(audio_path, duration=DURACION_GRABACION)
-            
-    except Exception as e:
-        print(f"\nError: {str(e)}")
-    finally:
-        # Limpieza final
-        if 'video_recorder' in locals():
-            video_recorder.stop()
-        if 'audio_recorder' in locals():
+            # Reinicia completamente la grabación
             audio_recorder.stop()
-        print("\nPrograma finalizado")
+            audio_recorder.start()
+            
+            # Espera el tiempo de grabación + margen
+            time.sleep(audio_recorder.duration + 0.5)
+        
+    except KeyboardInterrupt:
+        print("\nInterrupción por usuario")
+    except Exception as e:
+        print(f"\nERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        # Limpieza de recursos
+        print("\nDeteniendo sistema...")
+        if audio_recorder:
+            audio_recorder.stop()
+        if video_recorder:
+            video_recorder.stop()
+        print("Sistema detenido correctamente")
 
 if __name__ == "__main__":
     main()
-    
-    """
-    
-    Grabará tanto audio como video durante 5 minutos
-Mostrará un contador de tiempo restante en formato minutos:segundos
-Permitirá detener la grabación en cualquier momento con 's'
-Analizará el nivel de estrés al finalizar la grabación
-Guardará ambos archivos en la carpeta recordings
-Recomendaciones de uso:
-Asegúrate de tener suficiente espacio en disco (especialmente para el video)
-La ventana de la cámara se mostrará durante toda la grabación
-Puedes detener en cualquier momento con 's'
-El análisis de estrés se realizará sobre todo el audio grabado
-    
-
-Para usar el sistema:
-
-
-Asegúrate de tener todas las dependencias instaladas:
-
-pip install opencv-python tensorflow numpy librosa sounddevice matplotlib
-
-
-python main.py
-    
-    
-    
-    """
-    
