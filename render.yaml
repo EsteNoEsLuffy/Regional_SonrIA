@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: stress-detector-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python StressDetector/src/main_fastapi.py
+    envVars:
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: 3
+      - key: TF_ENABLE_ONEDNN_OPTS
+        value: 0
+      - key: DURATION
+        value: 10
+      - key: SAMPLE_RATE
+        value: 22050
+      - key: MODEL_PATH
+        value: models/modelo_deteccion_estres.keras
+      - key: DATASET_PATH
+        value: processed_dataset.npz
+      - key: RECORDINGS_DIR
+        value: recordings
