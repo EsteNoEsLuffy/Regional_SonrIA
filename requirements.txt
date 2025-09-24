@@ -1,31 +1,31 @@
 # FastAPI y servidor
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+python-multipart==0.0.12
 
 # Machine Learning
-tensorflow==2.12.0
-numpy==1.24.3
-librosa==0.10.1
+tensorflow==2.20.0
+numpy==1.26.4
+librosa==0.10.2
 
 # Audio y Video
-sounddevice==0.4.6
-opencv-python==4.8.1.78
-matplotlib==3.7.2
+sounddevice==0.5.1
+opencv-python==4.9.0.80
+matplotlib==3.8.4
 
 # Utilidades
-pydantic==2.5.0
+pydantic==2.9.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 
 # Procesamiento de archivos
-aiofiles==23.2.1
-Pillow==10.1.0
+aiofiles==24.1.0
+Pillow==10.4.0
 
 # Base de datos (opcional)
-sqlalchemy==2.0.23
-alembic==1.13.0
+sqlalchemy==2.0.36
+alembic==1.13.2
 
 # Logging y monitoreo
-structlog==23.2.0
+structlog==24.4.0

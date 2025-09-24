@@ -2,7 +2,7 @@ services:
   - type: web
     name: stress-detector-api
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: python -m pip install --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.txt
     startCommand: python StressDetector/src/main_fastapi.py
     envVars:
       - key: TF_CPP_MIN_LOG_LEVEL
@@ -19,3 +19,7 @@ services:
         value: processed_dataset.npz
       - key: RECORDINGS_DIR
         value: recordings
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: PYTHONPATH
+        value: StressDetector/src
