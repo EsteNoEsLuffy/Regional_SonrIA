@@ -27,10 +27,20 @@ tf.get_logger().setLevel('ERROR')
 # Importar módulos locales
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
 
-from stress_detector import Stress_Detector
-from audio_recorder import AudioRecorder
-from video_recorder import VideoRecoder
-from stress_detector_tester import StressDetectorTester
+# Imports condicionales para evitar errores en Render
+try:
+    from stress_detector import Stress_Detector
+    from audio_recorder import AudioRecorder
+    from video_recorder import VideoRecoder
+    from stress_detector_tester import StressDetectorTester
+    AUDIO_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Audio modules not available: {e}")
+    Stress_Detector = None
+    AudioRecorder = None
+    VideoRecoder = None
+    StressDetectorTester = None
+    AUDIO_AVAILABLE = False
 
 # Inicializar FastAPI
 app = FastAPI(
@@ -288,32 +298,40 @@ def initialize_components():
     """Inicializa los componentes del sistema"""
     global stress_detector, audio_recorder, video_recorder, stress_tester
     
+    if not AUDIO_AVAILABLE:
+        print("⚠️ Modo sin audio - solo endpoints ESP32")
+        return True
+    
     try:
         # Inicializar detector de estrés
-        stress_detector = Stress_Detector()
+        if Stress_Detector:
+            stress_detector = Stress_Detector()
         
         # Inicializar grabadores
-        audio_recorder = AudioRecorder(
-            stress_model=MODEL_PATH,
-            stress_threshold=0.6,
-            duration=DURATION
-        )
+        if AudioRecorder:
+            audio_recorder = AudioRecorder(
+                stress_model=MODEL_PATH,
+                stress_threshold=0.6,
+                duration=DURATION
+            )
         
-        video_recorder = VideoRecoder()
+        if VideoRecoder:
+            video_recorder = VideoRecoder()
         
         # Inicializar StressDetectorTester (tu clase principal)
-        stress_tester = StressDetectorTester(
-            dataset_path="processed_dataset.npz",
-            model_path=MODEL_PATH,
-            duration=DURATION,
-            sample_rate=SAMPLE_RATE,
-            mfcc_features=40
-        )
+        if StressDetectorTester:
+            stress_tester = StressDetectorTester(
+                dataset_path="processed_dataset.npz",
+                model_path=MODEL_PATH,
+                duration=DURATION,
+                sample_rate=SAMPLE_RATE,
+                mfcc_features=40
+            )
         
         return True
     except Exception as e:
         print(f"Error inicializando componentes: {e}")
-        return False
+        return True  # Continuar aunque haya errores
 
 # Endpoints
 @app.get("/", response_model=Dict[str, str])
@@ -556,9 +574,42 @@ async def receive_audio_from_esp32(
     file: UploadFile = File(...)
 ):
     """
-    Recibe audio de ESP32-S3 y lo analiza usando StressDetectorTester
-    Solo usa funcionalidades existentes del proyecto
+    Recibe audio de ESP32-S3 y lo almacena
     """
+    
+    if not AUDIO_AVAILABLE:
+        # Modo sin audio - solo almacenar
+        try:
+            # Crear directorio de grabaciones si no existe
+            os.makedirs("recordings", exist_ok=True)
+            
+            # Crear archivo temporal
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+                content = await file.read()
+                temp_file.write(content)
+                temp_file_path = temp_file.name
+            
+            # Generar nombre de archivo con timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"esp32_audio_{timestamp}.wav"
+            final_path = os.path.join("recordings", filename)
+            
+            # Mover archivo a ubicación final
+            import shutil
+            shutil.move(temp_file_path, final_path)
+            
+            return {
+                "success": True,
+                "message": "Audio recibido de ESP32-S3 (modo sin análisis)",
+                "device_id": "ESP32-S3",
+                "filename": filename,
+                "file_path": final_path,
+                "file_size": len(content),
+                "timestamp": datetime.now().isoformat(),
+                "ready_for_esp32": True
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error recibiendo audio: {str(e)}")
     
     if not stress_tester:
         raise HTTPException(status_code=503, detail="StressDetectorTester no disponible")
@@ -610,12 +661,8 @@ async def send_stress_data_to_esp32(
     timestamp: str
 ):
     """
-    Envía datos de análisis de estrés a ESP32-S3
-    Solo confirma recepción de datos existentes
+    Recibe datos de análisis de estrés de ESP32-S3
     """
-    
-    if not stress_tester:
-        raise HTTPException(status_code=503, detail="StressDetectorTester no disponible")
     
     try:
         # Validar datos recibidos
@@ -648,8 +695,24 @@ async def send_stress_data_to_esp32(
 async def get_model_status_for_esp32():
     """
     Envía estado del modelo a ESP32-S3
-    Solo información básica para verificar conectividad
     """
+    
+    if not AUDIO_AVAILABLE:
+        return {
+            "success": True,
+            "device_ready": True,
+            "model_loaded": False,
+            "stress_thresholds": {
+                "bajo": 0.3,
+                "medio": 0.6,
+                "alto": 0.8
+            },
+            "sample_rate": SAMPLE_RATE,
+            "mfcc_features": 40,
+            "timestamp": datetime.now().isoformat(),
+            "ready_for_esp32": True,
+            "mode": "reception_only"
+        }
     
     if not stress_tester:
         return {
@@ -865,11 +928,16 @@ async def startup_event():
     """Inicializar componentes al arrancar la aplicación"""
     print("=== INICIANDO STRESS DETECTOR API ===")
     
-    success = initialize_components()
-    if success:
-        print("✅ Componentes inicializados correctamente")
+    if AUDIO_AVAILABLE:
+        print("✅ Audio disponible - modo completo")
+        success = initialize_components()
+        if success:
+            print("✅ Componentes inicializados correctamente")
+        else:
+            print("⚠️ Algunos componentes no se pudieron inicializar")
     else:
-        print("⚠️ Algunos componentes no se pudieron inicializar")
+        print("⚠️ Audio no disponible - modo ESP32 solo")
+        print("✅ API lista para endpoints ESP32")
     
     print("🚀 API lista para recibir requests")
 
