@@ -3,7 +3,7 @@ services:
     name: stress-detector-api
     env: python
     buildCommand: python -m pip install --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.txt
-    startCommand: python StressDetector/src/main_fastapi.py
+    startCommand: python StressDetector/src/main_fastapi_render.py
     envVars:
       - key: TF_CPP_MIN_LOG_LEVEL
         value: 3
