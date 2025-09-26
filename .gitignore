@@ -1,0 +1,22 @@
+# Entornos
+.venv/
+venv/
+env/
+stress-env/
+*.pyc
+__pycache__/
+
+# Datos/pesados locales
+dataset_audios/
+recordings/
+models/
+*.npz
+*.pth
+*.pt
+*.h5
+*.ckpt
+
+# Sistema
+.DS_Store
+Thumbs.db
+.env
