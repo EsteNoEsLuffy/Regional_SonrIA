@@ -45,7 +45,13 @@ def download_and_extract_data():
                 mfcc_mean = np.mean(mfcc.T, axis=0)
                 
                 X.append(mfcc_mean)
-                y.append(int(label > 2))  # 0-2 = no estrés, 3-5 = estrés
+                if label == 0:
+                    y.append(0)  # bajo estrés
+                elif label == 0.600:
+                    y.append(0.600)  # estrés medio
+                else:
+                    y.append(1.3)  # alto estrés
+                
                 
             except Exception as e:
                 print(f"\nError procesando muestra {row['row_idx']}: {str(e)}")
