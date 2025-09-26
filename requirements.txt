@@ -32,3 +32,10 @@ structlog==24.4.0
 
 #render 
 
+fastapi
+uvicorn[standard]
+tensorflow
+librosa
+numpy
+python-multipart
+requests
