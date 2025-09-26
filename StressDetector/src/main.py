@@ -5,6 +5,8 @@
 import sys
 import os
 import time
+import gradio as gr
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
 
