@@ -1,3 +1,13 @@
+---
+title: Regional SonrIA API
+emoji: 🎧
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+pinned: false
+license: mit
+---
+
 # Regional SonrIA - API de Detección de Estrés Vocal
 
 API simple para detectar niveles de estrés en la voz usando FastAPI.
